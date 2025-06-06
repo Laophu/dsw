@@ -1,14 +1,27 @@
 import React, { useState } from 'react';
-import { User, Trophy, Calendar, Award, Clock, Target, Edit, Save, X, Upload, Camera } from 'lucide-react';
+import { User, Trophy, Calendar, Award, Clock, Target, Edit, Save, X, Upload, Camera, Lock, Eye, EyeOff } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 const ProfilePage: React.FC = () => {
-  const { currentUser, contestAttempts, contests, getLeaderboard, updateUserProfile } = useApp();
+  const { currentUser, contestAttempts, contests, getLeaderboard, updateUserProfile, changePassword } = useApp();
   const [isEditing, setIsEditing] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
   const [editForm, setEditForm] = useState({
     username: currentUser?.username || '',
     email: currentUser?.email || '',
     studentId: currentUser?.studentId || ''
+  });
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false
   });
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -64,6 +77,32 @@ const ProfilePage: React.FC = () => {
     setIsEditing(false);
     setAvatarFile(null);
     setAvatarPreview(null);
+  };
+
+  const handleChangePassword = () => {
+    setPasswordError('');
+    setPasswordSuccess('');
+    
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError('Mật khẩu mới và xác nhận mật khẩu không khớp');
+      return;
+    }
+    
+    if (passwordForm.newPassword.length < 6) {
+      setPasswordError('Mật khẩu mới phải có ít nhất 6 ký tự');
+      return;
+    }
+    
+    if (changePassword(currentUser.id, passwordForm.currentPassword, passwordForm.newPassword)) {
+      setPasswordSuccess('Đổi mật khẩu thành công!');
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setTimeout(() => {
+        setShowChangePassword(false);
+        setPasswordSuccess('');
+      }, 2000);
+    } else {
+      setPasswordError('Mật khẩu hiện tại không đúng');
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -227,13 +266,22 @@ const ProfilePage: React.FC = () => {
                   </button>
                 </>
               ) : (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="flex items-center space-x-1 bg-blue-600 hover:bg-blue-500 text-white py-2 px-3 rounded-lg transition-colors"
-                >
-                  <Edit className="w-4 h-4" />
-                  <span className="text-sm">Chỉnh sửa</span>
-                </button>
+                <>
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="flex items-center space-x-1 bg-blue-600 hover:bg-blue-500 text-white py-2 px-3 rounded-lg transition-colors"
+                  >
+                    <Edit className="w-4 h-4" />
+                    <span className="text-sm">Chỉnh sửa</span>
+                  </button>
+                  <button
+                    onClick={() => setShowChangePassword(true)}
+                    className="flex items-center space-x-1 bg-purple-600 hover:bg-purple-500 text-white py-2 px-3 rounded-lg transition-colors"
+                  >
+                    <Lock className="w-4 h-4" />
+                    <span className="text-sm">Đổi mật khẩu</span>
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -384,6 +432,123 @@ const ProfilePage: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Change Password Modal */}
+        {showChangePassword && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-800 border border-purple-500/20 rounded-2xl p-8 max-w-md w-full">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-bold text-white font-mono">Đổi mật khẩu</h3>
+                <button
+                  onClick={() => {
+                    setShowChangePassword(false);
+                    setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                    setPasswordError('');
+                    setPasswordSuccess('');
+                  }}
+                  className="text-slate-400 hover:text-white"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-purple-300 text-sm font-mono mb-2">Mật khẩu hiện tại</label>
+                  <div className="relative">
+                    <input
+                      type={showPasswords.current ? 'text' : 'password'}
+                      value={passwordForm.currentPassword}
+                      onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
+                      className="w-full bg-slate-700/50 border border-slate-600 rounded-lg py-3 px-4 pr-12 text-white placeholder-slate-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                      placeholder="Nhập mật khẩu hiện tại"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPasswords(prev => ({ ...prev, current: !prev.current }))}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-purple-400"
+                    >
+                      {showPasswords.current ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-purple-300 text-sm font-mono mb-2">Mật khẩu mới</label>
+                  <div className="relative">
+                    <input
+                      type={showPasswords.new ? 'text' : 'password'}
+                      value={passwordForm.newPassword}
+                      onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                      className="w-full bg-slate-700/50 border border-slate-600 rounded-lg py-3 px-4 pr-12 text-white placeholder-slate-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                      placeholder="Nhập mật khẩu mới"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPasswords(prev => ({ ...prev, new: !prev.new }))}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-purple-400"
+                    >
+                      {showPasswords.new ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-purple-300 text-sm font-mono mb-2">Xác nhận mật khẩu mới</label>
+                  <div className="relative">
+                    <input
+                      type={showPasswords.confirm ? 'text' : 'password'}
+                      value={passwordForm.confirmPassword}
+                      onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                      className="w-full bg-slate-700/50 border border-slate-600 rounded-lg py-3 px-4 pr-12 text-white placeholder-slate-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                      placeholder="Xác nhận mật khẩu mới"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPasswords(prev => ({ ...prev, confirm: !prev.confirm }))}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-purple-400"
+                    >
+                      {showPasswords.confirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+
+                {passwordError && (
+                  <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-3 text-red-400 text-sm">
+                    {passwordError}
+                  </div>
+                )}
+
+                {passwordSuccess && (
+                  <div className="bg-green-900/20 border border-green-500/50 rounded-lg p-3 text-green-400 text-sm">
+                    {passwordSuccess}
+                  </div>
+                )}
+
+                <div className="flex space-x-4 pt-4">
+                  <button
+                    onClick={handleChangePassword}
+                    className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white py-3 px-6 rounded-lg font-bold transition-all duration-300"
+                  >
+                    Đổi mật khẩu
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setShowChangePassword(false);
+                      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                      setPasswordError('');
+                      setPasswordSuccess('');
+                    }}
+                    className="bg-slate-600 hover:bg-slate-500 text-white py-3 px-6 rounded-lg font-bold transition-all duration-300"
+                  >
+                    Hủy
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

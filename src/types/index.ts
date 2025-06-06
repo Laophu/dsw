@@ -2,6 +2,7 @@ export interface User {
   id: string;
   username: string;
   email: string;
+  password: string;
   score: number;
   joinDate: string;
   role: 'user' | 'admin';

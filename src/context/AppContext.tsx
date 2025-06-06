@@ -29,6 +29,7 @@ interface AppContextType {
   updateContest: (contestId: string, updates: Partial<Contest>) => boolean;
   deleteContest: (contestId: string) => boolean;
   updateUserProfile: (userId: string, updates: Partial<User>) => boolean;
+  changePassword: (userId: string, currentPassword: string, newPassword: string) => boolean;
   createEvent: (event: Omit<Event, 'id' | 'author' | 'authorName' | 'createdAt' | 'updatedAt'>) => boolean;
   updateEvent: (eventId: string, updates: Partial<Event>) => boolean;
   deleteEvent: (eventId: string) => boolean;
@@ -125,6 +126,7 @@ const initialUsers: User[] = [
     id: '1',
     username: 'AIExplorer',
     email: 'explorer@vaic.com',
+    password: 'explorer123',
     score: 150,
     joinDate: '2024-01-15',
     role: 'user',
@@ -134,6 +136,7 @@ const initialUsers: User[] = [
     id: '2',
     username: 'TechWizard',
     email: 'wizard@vaic.com',
+    password: 'wizard456',
     score: 120,
     joinDate: '2024-01-20',
     role: 'user',
@@ -143,6 +146,7 @@ const initialUsers: User[] = [
     id: '3',
     username: 'DataMaster',
     email: 'master@vaic.com',
+    password: 'master789',
     score: 180,
     joinDate: '2024-01-10',
     role: 'user',
@@ -152,6 +156,7 @@ const initialUsers: User[] = [
     id: 'admin',
     username: 'Admin',
     email: 'admin@vaic.com',
+    password: 'admin2024',
     score: 999,
     joinDate: '2024-01-01',
     role: 'admin'
@@ -225,7 +230,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const login = (email: string, password: string): boolean => {
     const user = users.find(u => u.email === email);
-    if (user && password === 'password') {
+    if (user && user.password === password) {
       setCurrentUser(user);
       localStorage.setItem('vaic_currentUser', JSON.stringify(user));
       return true;
@@ -242,6 +247,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       id: Date.now().toString(),
       username,
       email,
+      password,
       score: 0,
       joinDate: new Date().toISOString().split('T')[0],
       role: 'user'
@@ -266,6 +272,25 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     
     if (currentUser && currentUser.id === userId) {
       const updatedUser = { ...currentUser, ...updates };
+      setCurrentUser(updatedUser);
+      localStorage.setItem('vaic_currentUser', JSON.stringify(updatedUser));
+    }
+    return true;
+  };
+
+  const changePassword = (userId: string, currentPassword: string, newPassword: string): boolean => {
+    const user = users.find(u => u.id === userId);
+    if (!user || user.password !== currentPassword) {
+      return false;
+    }
+    
+    const updatedUsers = users.map(u => 
+      u.id === userId ? { ...u, password: newPassword } : u
+    );
+    setUsers(updatedUsers);
+    
+    if (currentUser && currentUser.id === userId) {
+      const updatedUser = { ...currentUser, password: newPassword };
       setCurrentUser(updatedUser);
       localStorage.setItem('vaic_currentUser', JSON.stringify(updatedUser));
     }
@@ -600,6 +625,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       updateContest,
       deleteContest,
       updateUserProfile,
+      changePassword,
       createEvent,
       updateEvent,
       deleteEvent,

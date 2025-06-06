@@ -95,9 +95,13 @@ export const LoginPage: React.FC = () => {
                 Đăng ký ngay
               </button>
             </p>
-            <p className="text-slate-500 text-xs mt-2 font-mono">
-              Demo: Sử dụng mật khẩu "password" cho bất kỳ email nào
-            </p>
+            <div className="mt-4 p-3 bg-slate-700/30 rounded-lg">
+              <p className="text-slate-500 text-xs font-mono mb-2">Tài khoản demo:</p>
+              <div className="space-y-1 text-xs">
+                <p className="text-slate-400">Admin: admin@vaic.com / admin2024</p>
+                <p className="text-slate-400">User: explorer@vaic.com / explorer123</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -111,6 +115,7 @@ export const RegisterPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const { register, setCurrentPage } = useApp();
 
@@ -210,13 +215,20 @@ export const RegisterPage: React.FC = () => {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input
-                  type="password"
+                  type={showConfirmPassword ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full bg-slate-700/50 border border-slate-600 rounded-lg py-3 pl-12 pr-4 text-white placeholder-slate-400 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
+                  className="w-full bg-slate-700/50 border border-slate-600 rounded-lg py-3 pl-12 pr-12 text-white placeholder-slate-400 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
                   placeholder="••••••••"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-cyan-400 transition-colors"
+                >
+                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
             </div>
 
