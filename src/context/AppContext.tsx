@@ -120,7 +120,7 @@ const mockContests: Contest[] = [
   }
 ];
 
-const mockUsers: User[] = [
+const initialUsers: User[] = [
   {
     id: '1',
     username: 'AIExplorer',
@@ -198,7 +198,10 @@ const mockForumTopics: ForumTopic[] = [
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [users, setUsers] = useState<User[]>(mockUsers);
+  const [users, setUsers] = useState<User[]>(() => {
+    const savedUsers = localStorage.getItem('vaic_users');
+    return savedUsers ? JSON.parse(savedUsers) : initialUsers;
+  });
   const [challenges, setChallenges] = useState<Challenge[]>(mockChallenges);
   const [contests, setContests] = useState<Contest[]>(mockContests);
   const [userProgress, setUserProgress] = useState<UserProgress[]>([]);
@@ -207,18 +210,24 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [forumTopics, setForumTopics] = useState<ForumTopic[]>(mockForumTopics);
   const [currentPage, setCurrentPage] = useState('home');
 
+  // Load saved data on mount
   useEffect(() => {
-    const savedUser = localStorage.getItem('currentUser');
+    const savedUser = localStorage.getItem('vaic_currentUser');
     if (savedUser) {
       setCurrentUser(JSON.parse(savedUser));
     }
   }, []);
 
+  // Save users to localStorage whenever users array changes
+  useEffect(() => {
+    localStorage.setItem('vaic_users', JSON.stringify(users));
+  }, [users]);
+
   const login = (email: string, password: string): boolean => {
     const user = users.find(u => u.email === email);
     if (user && password === 'password') {
       setCurrentUser(user);
-      localStorage.setItem('currentUser', JSON.stringify(user));
+      localStorage.setItem('vaic_currentUser', JSON.stringify(user));
       return true;
     }
     return false;
@@ -238,24 +247,27 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       role: 'user'
     };
     
-    setUsers(prev => [...prev, newUser]);
+    const updatedUsers = [...users, newUser];
+    setUsers(updatedUsers);
     setCurrentUser(newUser);
-    localStorage.setItem('currentUser', JSON.stringify(newUser));
+    localStorage.setItem('vaic_currentUser', JSON.stringify(newUser));
     return true;
   };
 
   const logout = () => {
     setCurrentUser(null);
-    localStorage.removeItem('currentUser');
+    localStorage.removeItem('vaic_currentUser');
     setCurrentPage('home');
   };
 
   const updateUserProfile = (userId: string, updates: Partial<User>): boolean => {
-    setUsers(prev => prev.map(u => u.id === userId ? { ...u, ...updates } : u));
+    const updatedUsers = users.map(u => u.id === userId ? { ...u, ...updates } : u);
+    setUsers(updatedUsers);
+    
     if (currentUser && currentUser.id === userId) {
       const updatedUser = { ...currentUser, ...updates };
       setCurrentUser(updatedUser);
-      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+      localStorage.setItem('vaic_currentUser', JSON.stringify(updatedUser));
     }
     return true;
   };
@@ -274,7 +286,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const updatedUser = { ...currentUser, score: currentUser.score + challenge.points };
       setCurrentUser(updatedUser);
       setUsers(prev => prev.map(u => u.id === currentUser.id ? updatedUser : u));
-      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+      localStorage.setItem('vaic_currentUser', JSON.stringify(updatedUser));
       
       const progress: UserProgress = {
         userId: currentUser.id,
@@ -373,7 +385,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const updatedUser = { ...currentUser, score: currentUser.score + finalScore };
     setCurrentUser(updatedUser);
     setUsers(prev => prev.map(u => u.id === currentUser.id ? updatedUser : u));
-    localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+    localStorage.setItem('vaic_currentUser', JSON.stringify(updatedUser));
   };
 
   const getCurrentAttempt = (contestId: string): ContestAttempt | null => {

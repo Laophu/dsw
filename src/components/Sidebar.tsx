@@ -69,38 +69,19 @@ const Sidebar: React.FC = () => {
       {/* Dropdown Menu */}
       {isMenuOpen && (
         <div className="absolute top-16 right-0 w-80 bg-slate-900/95 backdrop-blur-sm border border-cyan-500/20 rounded-2xl shadow-2xl overflow-hidden">
-          {/* Header */}
-          <div className="p-6 border-b border-cyan-500/20 bg-gradient-to-r from-slate-800/50 to-slate-700/50">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg flex items-center justify-center">
-                  <Brain className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-lg font-bold text-white font-mono">VAIC</h1>
-                  <p className="text-xs text-cyan-300">AI Club</p>
-                </div>
-              </div>
-              <button
-                onClick={toggleMenu}
-                className="text-slate-400 hover:text-white transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* User Info */}
-            {currentUser && (
-              <div className="bg-slate-800/50 rounded-lg p-3">
-                <div className="flex items-center space-x-3 mb-2">
+          {/* User Info */}
+          {currentUser && (
+            <div className="p-6 border-b border-cyan-500/20 bg-gradient-to-r from-slate-800/50 to-slate-700/50">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
                   {currentUser.avatar ? (
                     <img 
                       src={currentUser.avatar} 
                       alt="Avatar" 
-                      className="w-8 h-8 rounded-full object-cover"
+                      className="w-10 h-10 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center">
+                    <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center">
                       <span className="text-white text-sm font-bold">
                         {currentUser.username.charAt(0).toUpperCase()}
                       </span>
@@ -111,17 +92,26 @@ const Sidebar: React.FC = () => {
                     <p className="text-white font-semibold text-sm">{currentUser.username}</p>
                   </div>
                 </div>
-                <p className="text-green-400 text-sm font-mono">
+                <button
+                  onClick={toggleMenu}
+                  className="text-slate-400 hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="bg-slate-800/50 rounded-lg p-3">
+                <p className="text-green-400 text-sm font-mono mb-1">
                   Điểm: {currentUser.score}
                 </p>
                 {currentUser.role === 'admin' && (
-                  <span className="inline-block mt-1 px-2 py-1 bg-purple-900/20 text-purple-400 border border-purple-500/50 rounded text-xs font-mono">
+                  <span className="inline-block px-2 py-1 bg-purple-900/20 text-purple-400 border border-purple-500/50 rounded text-xs font-mono">
                     ADMIN
                   </span>
                 )}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Navigation Menu */}
           <div className="p-4 max-h-96 overflow-y-auto">
